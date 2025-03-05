@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SKBookApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SKBookApi.Controllers
 {
@@ -7,5 +9,11 @@ namespace SKBookApi.Controllers
     [ApiController]
     public class ShortsController : ControllerBase
     {
+        [HttpGet]
+public async Task<ActionResult<IEnumerable<Short>>> GetShorts([FromServices] DatabaseContext context)
+{
+    return await context.Shorts.ToListAsync();
+}
+
     }
 }

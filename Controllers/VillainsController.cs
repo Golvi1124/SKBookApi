@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SKBookApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SKBookApi.Controllers
 {
@@ -7,5 +9,11 @@ namespace SKBookApi.Controllers
     [ApiController]
     public class VillainsController : ControllerBase
     {
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Villain>>> GetVillains([FromServices] DatabaseContext context)
+        {
+            return await context.Villains.ToListAsync();
+        }
+
     }
 }

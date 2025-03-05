@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stephen King API</title>
+    <script>
+        async function fetchData(type) {
+            const response = await fetch(`/api/${type}`);
+            const data = await response.json();
+            const list = document.getElementById("list");
+            list.innerHTML = "";
+            data.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.title || item.name;
+                li.onclick = () => showDetails(type, item.id);
+                list.appendChild(li);
+            });
+        }
+
+        async function showDetails(type, id) {
+            const response = await fetch(`/api/${type}/${id}`);
+            const item = await response.json();
+            document.getElementById("details").innerHTML = `
+                <h3>${item.title || item.name}</h3>
+                <p>${item.gender ? "Gender: " + item.gender : ""}</p>
+                <p>${item.status ? "Status: " + item.status : ""}</p>
+                <p>${item.publisher ? "Publisher: " + item.publisher : ""}</p>
+                <button onclick="fetchData('${type}')">Back</button>
+            `;
+        }
+    </script>
+</head>
+<body>
+    <button onclick="fetchData('books')">Show All Books</button>
+    <button onclick="fetchData('shorts')">Show All Shorts</button>
+    <button onclick="fetchData('villains')">Show All Villains</button>
+    <ul id="list"></ul>
+    <div id="details"></div>
+</body>
+</html>

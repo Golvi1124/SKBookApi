@@ -1,5 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
+using SKBookApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<DatabaseContext>(options =>
+    options.UseSqlite("Data Source=" + Path.Combine(AppContext.BaseDirectory, "SKing.db"))); // This explicitly sets the database file inside your project folder.
+
 builder.Services.AddSwaggerGen();
 
 
