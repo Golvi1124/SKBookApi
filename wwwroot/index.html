@@ -87,7 +87,7 @@
                     output += `<p><strong>Collected in:</strong> ${item.collectedIn || 'Uncollected'}</p>`;
                     break;
                 case 'villains':
-                    output += `<p><strong>Gender:</strong> ${item.gender}</p>`;
+                output += `<p><strong>Gender:</strong> ${item.gender ? item.gender : "Not a human"}</p>`;
                     output += `<p><strong>Status:</strong> ${item.status}</p>`;
                     output += `<p><strong>Appears in:</strong> ${[...(item.books || []).map(b => b.title), ...(item.shorts || []).map(s => s.title)].join(", ")}</p>`;
                     break;
