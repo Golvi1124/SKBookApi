@@ -1,78 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stephen King API</title>
     <style>
+        /* Styling for buttons */
         button {
-            font-size: 1.5em; /* Make buttons twice as big */
-            margin: 10px;
+            font-size: 1.3em;
+            margin: 20px;
             padding: 10px 20px;
         }
+
+        /* Styling for clickable items */
         .clickable {
             text-decoration: underline;
             cursor: pointer;
         }
+
+        /* Spacing between items */
         .content-item {
             margin-bottom: 10px;
+            margin-left: 60px;
         }
     </style>
+
+
     <script>
-        async function fetchData(type) {
-            const response = await fetch(`/api/${type}`);
-            const data = await response.json();
-            let groupedData = groupByDecade(data, type);
-            let output = '<div>';
-            
-            for (const decade in groupedData) {
-                output += `<h3>${decade}</h3><div>`;
-                groupedData[decade].forEach(item => {
-                    output += `<div class='clickable content-item' onclick="fetchDetails('${type}', ${item.id})">${item.title || item.name}</div>`;
-                });
-                output += `</div>`;
+        /* Fetch data for books, shorts, or villains */
+        async function fetchData(type) { //type are 'books', 'shorts', or 'villains', depending on what the user clicks.
+            const response = await fetch(`/api/${type}`); // Uses the fetch API to send a GET request to the corresponding API endpoint. await ensures the function waits for the server response before continuing
+            const data = await response.json();// Converts the response from JSON format to a JavaScript object. await ensures the function waits for the conversion to complete before continuing
+            let output = '<div>';//Creates an empty string that will store the dynamically generated HTML content.This variable will later be used to display the list of books, shorts, or villains on the webpage.
+
+            switch (type) {
+                case 'books':
+                    /* Normally, switch stops executing a case after break;.
+                    Since 'books' falls through to 'shorts' (because there's no break in between), both cases execute the same code.
+                    If there would be "break" after then would need to reapeat code for groupByDecade */
+                case 'shorts':
+                    let groupedData = groupByDecade(data, type);
+                    for (const decade in groupedData) {
+                        output += `<h3>${decade}</h3><div>`;
+                        groupedData[decade].forEach(item => {
+                            output += `<div class='clickable content-item' onclick="fetchDetails('${type}', ${item.id})">${item.title}</div>`;
+                        });
+                        output += `</div>`;
+                    }
+                    break;
+                case 'villains':
+                    let sortedVillains = sortVillains(data);
+                    output += `<h3>Appears in Books</h3><div>`;
+                    sortedVillains.books.forEach(villain => {
+                        output += `<div class='clickable content-item' onclick="fetchDetails('${type}', ${villain.id})">${villain.name}</div>`;
+                    });
+                    output += `</div><h3>Appears in Shorts</h3><div>`;
+                    sortedVillains.shorts.forEach(villain => {
+                        output += `<div class='clickable content-item' onclick="fetchDetails('${type}', ${villain.id})">${villain.name}</div>`;
+                    });
+                    output += `</div>`;
+                    break;
             }
-            
+
             output += '<button onclick="showHome()">Back</button></div>';
             document.getElementById('content').innerHTML = output;
         }
 
+        /* Fetch and display details of selected item */
         async function fetchDetails(type, id) {
             const response = await fetch(`/api/${type}`);
             const data = await response.json();
             const item = data.find(i => i.id === id);
             let output = `<h2>${item.title || item.name}</h2>`;
-            
-            if (type === 'books' || type === 'shorts') {
-                output += `<p><strong>Published in:</strong> ${item.year || item.originallyPublishedIn || '-'}</p>`;
-                if (type === 'books') {
-                    output += `<p><strong>Published by:</strong> ${item.publisher || '-'}</p>`;
+
+            switch (type) {
+                case 'books':
+                    output += `<p><strong>Published in:</strong> ${item.year}</p>`;
+                    output += `<p><strong>Published by:</strong> ${item.publisher}</p>`;
                     output += `<p><strong>Total pages:</strong> ${item.pages}</p>`;
-                } else {
+                    break;
+                case 'shorts':
+                    output += `<p><strong>Written in:</strong> ${item.year}</p>`;
+                    output += `<p><strong>Published in:</strong> ${item.originallyPublishedIn || '-'}</p>`;
                     output += `<p><strong>Type:</strong> ${item.type}</p>`;
-                    output += `<p><strong>Originally published in:</strong> ${item.originallyPublishedIn || '-'}</p>`;
                     output += `<p><strong>Collected in:</strong> ${item.collectedIn || 'Uncollected'}</p>`;
-                }
+                    break;
+                case 'villains':
+                    output += `<p><strong>Gender:</strong> ${item.gender}</p>`;
+                    output += `<p><strong>Status:</strong> ${item.status}</p>`;
+                    output += `<p><strong>Appears in:</strong> ${[...(item.books || []).map(b => b.title), ...(item.shorts || []).map(s => s.title)].join(", ")}</p>`;
+                    break;
             }
+
             if (item.notes && item.notes.length) {
                 output += `<p><strong>Notes:</strong> ${item.notes.join(", ")}</p>`;
             }
             if (item.villains && item.villains.length) {
                 output += `<p><strong>Villains:</strong> ${item.villains.map(v => v.name).join(", ")}</p>`;
             }
-            if (type === 'villains') {
-                output += `<p><strong>Gender:</strong> ${item.gender}</p>`;
-                output += `<p><strong>Status:</strong> ${item.status}</p>`;
-                output += `<p><strong>Appears in books/shorts:</strong> ${[...(item.books || []).map(b => b.title), ...(item.shorts || []).map(s => s.title)].join(", ")}</p>`;
-            }
             output += `<button onclick="fetchData('${type}')">Back</button>`;
             document.getElementById('content').innerHTML = output;
         }
 
+        /* Group books and shorts by decade */
         function groupByDecade(data, type) {
             const grouped = {};
             data.forEach(item => {
-                let year = item.year || item.originallyPublishedIn;
+                let year = item.year; // Use "year" for both books and shorts
                 let decade = year ? `${Math.floor(year / 10) * 10}s` : "Unknown";
                 if (!grouped[decade]) grouped[decade] = [];
                 grouped[decade].push(item);
@@ -80,6 +115,27 @@
             return grouped;
         }
 
+        /* Sort villains into books and shorts categories alphabetically */
+        function sortVillains(data) {
+            let books = [];
+            let shorts = [];
+
+            data.forEach(villain => {
+                if (villain.books && villain.books.length) {
+                    books.push(villain);
+                }
+                if (villain.shorts && villain.shorts.length) {
+                    shorts.push(villain);
+                }
+            });
+
+            return {
+                books: books.sort((a, b) => a.name.localeCompare(b.name)),
+                shorts: shorts.sort((a, b) => a.name.localeCompare(b.name))
+            };
+        }
+
+        /* Display the home screen with category buttons */
         function showHome() {
             document.getElementById('content').innerHTML = `
                 <button onclick="fetchData('books')">Show all books</button>
@@ -88,10 +144,13 @@
             `;
         }
 
+        /* Load home screen on page load */
         window.onload = showHome;
     </script>
 </head>
+
 <body>
     <div id="content"></div>
 </body>
+
 </html>

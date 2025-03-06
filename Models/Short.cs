@@ -14,6 +14,7 @@ public class Short
     public string? type { get; set; }
     public string? originallyPublishedIn { get; set; }
     public string? collectedIn { get; set; }
+    public int year { get; set; }
     public List<string>? notes { get; set; }
     public List<Villain>? villains { get; set; } 
 }
