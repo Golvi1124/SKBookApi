@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using SKBookApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace SKBookApi.Controllers
+namespace SKBookApi.Controllers;
+public class VillainsController : BaseApiController
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class VillainsController : ControllerBase
-    {
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Villain>>> GetVillains([FromServices] DatabaseContext context)
-        {
-            return await context.Villains.ToListAsync();
-        }
+    private const string ApiUrl = "https://stephen-king-api.onrender.com/api/villains";
 
-    }
+[HttpGet]
+public async Task<IActionResult> GetVillains()
+{
+    var villainResponse = await FetchData<VillainResponse>(ApiUrl);
+
+    if (villainResponse == null || villainResponse.Data == null)
+        return NotFound("No books found.");
+
+    return Ok(villainResponse.Data);
 }
+}
+

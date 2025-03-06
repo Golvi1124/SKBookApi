@@ -8,34 +8,38 @@
         async function fetchData(type) {
             const response = await fetch(`/api/${type}`);
             const data = await response.json();
-            const list = document.getElementById("list");
-            list.innerHTML = "";
+            let output = '<ul>';
             data.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = item.title || item.name;
-                li.onclick = () => showDetails(type, item.id);
-                list.appendChild(li);
+                output += `<li onclick="fetchDetails('${type}', ${item.id})">${item.id}. ${item.name || item.title}</li>`;
             });
+            output += '</ul><button onclick="showHome()">Back</button>';
+            document.getElementById('content').innerHTML = output;
         }
 
-        async function showDetails(type, id) {
-            const response = await fetch(`/api/${type}/${id}`);
-            const item = await response.json();
-            document.getElementById("details").innerHTML = `
-                <h3>${item.title || item.name}</h3>
-                <p>${item.gender ? "Gender: " + item.gender : ""}</p>
-                <p>${item.status ? "Status: " + item.status : ""}</p>
-                <p>${item.publisher ? "Publisher: " + item.publisher : ""}</p>
-                <button onclick="fetchData('${type}')">Back</button>
+        async function fetchDetails(type, id) {
+            const response = await fetch(`/api/${type}`);
+            const data = await response.json();
+            const item = data.find(i => i.id === id);
+            let output = `<h2>${item.name || item.title}</h2>`;
+            for (const [key, value] of Object.entries(item)) {
+                if (key !== 'id') output += `<p><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}</p>`;
+            }
+            output += '<button onclick="fetchData(\'' + type + '\')">Back</button>';
+            document.getElementById('content').innerHTML = output;
+        }
+
+        function showHome() {
+            document.getElementById('content').innerHTML = `
+                <button onclick="fetchData('books')">Show all books</button>
+                <button onclick="fetchData('shorts')">Show all shorts</button>
+                <button onclick="fetchData('villains')">Show all villains</button>
             `;
         }
+
+        window.onload = showHome;
     </script>
 </head>
 <body>
-    <button onclick="fetchData('books')">Show All Books</button>
-    <button onclick="fetchData('shorts')">Show All Shorts</button>
-    <button onclick="fetchData('villains')">Show All Villains</button>
-    <ul id="list"></ul>
-    <div id="details"></div>
+    <div id="content"></div>
 </body>
 </html>

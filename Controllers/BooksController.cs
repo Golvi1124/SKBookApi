@@ -3,18 +3,26 @@ using Microsoft.AspNetCore.Mvc;
 using SKBookApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace SKBookApi.Controllers
+namespace SKBookApi.Controllers;
+public class BooksController : BaseApiController
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BooksController : ControllerBase
+    private const string ApiUrl = "https://stephen-king-api.onrender.com/api/books";
+
+[HttpGet]
+public async Task<IActionResult> GetBooks()
+{
+    var bookResponse = await FetchData<BookResponse>(ApiUrl);
+
+    if (bookResponse == null || bookResponse.Data == null)
+        return NotFound("No books found.");
+
+    return Ok(bookResponse.Data);
+}
+
+    /* [HttpGet]
+    public async Task<IActionResult> GetBooks()
     {
-        [HttpGet]
-public async Task<ActionResult<IEnumerable<Book>>> GetBooks([FromServices] DatabaseContext context)
-{
-    return await context.Books.ToListAsync();
+        var books = await FetchData<List<Book>>(ApiUrl);
+        return books != null ? Ok(books) : NotFound("No books found.");
+    } */
 }
-
-    }
-}
-

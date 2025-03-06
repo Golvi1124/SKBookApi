@@ -1,16 +1,27 @@
 using System;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-namespace SKBookApi.Models;
+public class BookResponse
+{
+    public List<Book>? Data { get; set; }
+}
 
 public class Book
 {
-    [Key]
     public int id { get; set; }
     public int Year { get; set; }
     public string? Title { get; set; }
     public string? Publisher { get; set; }
     public int Pages { get; set; }
-    public List<string> notes { get; set; } = new List<string>();
-    public List<Villain> villains { get; set; } = new List<Villain>();
+    public List<string>? Notes { get; set; }
+    public List<Villain>? Villains { get; set; }
+}
+
+public class Villain
+{
+    public string? Name { get; set; }
+    public string? Url { get; set; }
 }

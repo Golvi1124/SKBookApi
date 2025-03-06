@@ -3,17 +3,28 @@ using Microsoft.AspNetCore.Mvc;
 using SKBookApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace SKBookApi.Controllers
+namespace SKBookApi.Controllers;
+
+    public class ShortsController : BaseApiController
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ShortsController : ControllerBase
-    {
-        [HttpGet]
-public async Task<ActionResult<IEnumerable<Short>>> GetShorts([FromServices] DatabaseContext context)
+    private const string ApiUrl = "https://stephen-king-api.onrender.com/api/shorts";
+
+
+[HttpGet]
+public async Task<IActionResult> GetShorts()
 {
-    return await context.Shorts.ToListAsync();
+    var shortResponse = await FetchData<ShortResponse>(ApiUrl);
+
+    if (shortResponse == null || shortResponse.Data == null)
+        return NotFound("No books found.");
+
+    return Ok(shortResponse.Data);
 }
 
-    }
+/*     [HttpGet]
+    public async Task<IActionResult> GetShorts()
+    {
+        var shorts = await FetchData<List<Short>>(ApiUrl);
+        return shorts != null ? Ok(shorts) : NotFound("No shorts found.");
+    } */
 }
