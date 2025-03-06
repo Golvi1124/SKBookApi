@@ -21,10 +21,5 @@ public async Task<IActionResult> GetShorts()
     return Ok(shortResponse.Data);
 }
 
-/*     [HttpGet]
-    public async Task<IActionResult> GetShorts()
-    {
-        var shorts = await FetchData<List<Short>>(ApiUrl);
-        return shorts != null ? Ok(shorts) : NotFound("No shorts found.");
-    } */
+
 }

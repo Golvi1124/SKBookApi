@@ -4,15 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stephen King API</title>
+    <style>
+        button {
+            font-size: 1.5em; /* Make buttons twice as big */
+            margin: 10px;
+            padding: 10px 20px;
+        }
+        .clickable {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .content-item {
+            margin-bottom: 10px;
+        }
+    </style>
     <script>
         async function fetchData(type) {
             const response = await fetch(`/api/${type}`);
             const data = await response.json();
-            let output = '<ul>';
-            data.forEach(item => {
-                output += `<li onclick="fetchDetails('${type}', ${item.id})">${item.id}. ${item.name || item.title}</li>`;
-            });
-            output += '</ul><button onclick="showHome()">Back</button>';
+            let groupedData = groupByDecade(data, type);
+            let output = '<div>';
+            
+            for (const decade in groupedData) {
+                output += `<h3>${decade}</h3><div>`;
+                groupedData[decade].forEach(item => {
+                    output += `<div class='clickable content-item' onclick="fetchDetails('${type}', ${item.id})">${item.title || item.name}</div>`;
+                });
+                output += `</div>`;
+            }
+            
+            output += '<button onclick="showHome()">Back</button></div>';
             document.getElementById('content').innerHTML = output;
         }
 
@@ -20,12 +41,43 @@
             const response = await fetch(`/api/${type}`);
             const data = await response.json();
             const item = data.find(i => i.id === id);
-            let output = `<h2>${item.name || item.title}</h2>`;
-            for (const [key, value] of Object.entries(item)) {
-                if (key !== 'id') output += `<p><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}</p>`;
+            let output = `<h2>${item.title || item.name}</h2>`;
+            
+            if (type === 'books' || type === 'shorts') {
+                output += `<p><strong>Published in:</strong> ${item.year || item.originallyPublishedIn || '-'}</p>`;
+                if (type === 'books') {
+                    output += `<p><strong>Published by:</strong> ${item.publisher || '-'}</p>`;
+                    output += `<p><strong>Total pages:</strong> ${item.pages}</p>`;
+                } else {
+                    output += `<p><strong>Type:</strong> ${item.type}</p>`;
+                    output += `<p><strong>Originally published in:</strong> ${item.originallyPublishedIn || '-'}</p>`;
+                    output += `<p><strong>Collected in:</strong> ${item.collectedIn || 'Uncollected'}</p>`;
+                }
             }
-            output += '<button onclick="fetchData(\'' + type + '\')">Back</button>';
+            if (item.notes && item.notes.length) {
+                output += `<p><strong>Notes:</strong> ${item.notes.join(", ")}</p>`;
+            }
+            if (item.villains && item.villains.length) {
+                output += `<p><strong>Villains:</strong> ${item.villains.map(v => v.name).join(", ")}</p>`;
+            }
+            if (type === 'villains') {
+                output += `<p><strong>Gender:</strong> ${item.gender}</p>`;
+                output += `<p><strong>Status:</strong> ${item.status}</p>`;
+                output += `<p><strong>Appears in books/shorts:</strong> ${[...(item.books || []).map(b => b.title), ...(item.shorts || []).map(s => s.title)].join(", ")}</p>`;
+            }
+            output += `<button onclick="fetchData('${type}')">Back</button>`;
             document.getElementById('content').innerHTML = output;
+        }
+
+        function groupByDecade(data, type) {
+            const grouped = {};
+            data.forEach(item => {
+                let year = item.year || item.originallyPublishedIn;
+                let decade = year ? `${Math.floor(year / 10) * 10}s` : "Unknown";
+                if (!grouped[decade]) grouped[decade] = [];
+                grouped[decade].push(item);
+            });
+            return grouped;
         }
 
         function showHome() {
